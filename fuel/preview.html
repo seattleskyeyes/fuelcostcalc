@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Fuel Cost | Responsive preview</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <script src="preview.js" defer></script>
+</head>
+<body class="preview-page">
+  <header class="preview-toolbar">
+    <strong>Fuel Cost preview</strong>
+    <div role="group" aria-label="Preview width">
+      <button type="button" data-width="360" aria-pressed="true">Mobile 360px</button>
+      <button type="button" data-width="1024" aria-pressed="false">Desktop 1024px</button>
+    </div>
+    <a href="index.html">Open calculator directly</a>
+    <p id="preview-status" class="hint" role="status">Mobile: 360px. Switch sizes without reloading or losing form entries. Scroll horizontally if the preview is wider than this window.</p>
+  </header>
+  <main class="preview-stage">
+    <iframe id="calculator-preview" src="index.html" title="Interactive fuel calculator preview" width="360" height="800"></iframe>
+  </main>
+</body>
+</html>

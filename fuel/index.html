@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Estimate fuel cost by mileage, or calculate fuel used from calibrated tank readings. Private, local, and vehicle-neutral.">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <script src="calc.js" defer></script>
+  <script src="data.js" defer></script>
+  <script src="app.js" defer></script>
+  <title>Fuel Cost | Every mile accounted for</title>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to calculator</a>
+  <div class="shell">
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="Fuel Cost home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 21V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v17M3 21h14M5 11h10M8 6h4M15 13h2a2 2 0 0 1 2 2v3a1 1 0 0 0 2 0V9l-3-3"/><path d="M19 7v3h2"/></svg>
+        </span>
+        <span>FUEL <strong>COST</strong><small>Every mile accounted for</small></span>
+      </a>
+      <span class="local-badge"><span aria-hidden="true"></span> Stored on this device</span>
+    </header>
+    <a class="preview-link" href="preview.html" target="_blank" rel="noopener">Open mobile / desktop preview</a>
+
+    <div class="intro">
+      <p class="eyebrow">THE TRIP, NOT THE VEHICLE</p>
+      <h1>Know what the miles cost.</h1>
+      <p>Plan a trip or settle up after a job. Just fuel, with the math in plain sight.</p>
+    </div>
+    <noscript><p class="notice error">JavaScript is required to calculate and save data. No data leaves this browser.</p></noscript>
+    <p id="storage-warning" class="notice error" role="alert" hidden></p>
+    <p id="app-status" class="notice success" role="status" hidden></p>
+
+    <div class="panel vehicle-bar">
+      <label for="vehicle-select">Vehicle<select id="vehicle-select"><option value="">Quick calculation (unsaved)</option></select></label>
+      <button id="manage-vehicles" type="button">Add / edit vehicle</button>
+      <p id="vehicle-context" class="hint wide">Quick mode keeps calculations and calibrations in this tab only. Choose a saved vehicle to save jobs and fill-ups.</p>
+      <p class="hint wide">Switching vehicles clears gauge and fill readings. Trip mileage, dates, and job-day prices stay in place.</p>
+    </div>
+    <nav class="tabs" aria-label="Calculator sections">
+      <button type="button" data-section="estimate" aria-current="page">Estimate</button>
+      <button type="button" data-section="job">Job actuals</button>
+      <button type="button" data-section="calibrate">Calibrate</button>
+      <button type="button" data-section="data">History / Vehicles</button>
+    </nav>
+
+    <main id="main">
+      <section id="section-estimate" aria-labelledby="estimate-heading">
+        <div class="section-heading"><div><p class="eyebrow">BEFORE YOU GO</p><h2 id="estimate-heading" tabindex="-1">Trip estimate</h2></div><span class="step-tag">Miles to dollars</span></div>
+        <div id="estimate-result" class="result-card" aria-live="polite">
+          <p class="eyebrow">YOUR FUEL BUDGET</p><h3>A few numbers. A clearer cost.</h3><p>Enter your round-trip miles and fuel economy to get started.</p>
+        </div>
+        <form id="estimate-form" class="panel">
+          <div class="panel-heading"><h3>Trip details</h3><span>Any vehicle. Any fuel.</span></div>
+          <div class="fields">
+            <label>Round-trip distance <span class="unit">miles</span><input name="miles" type="number" inputmode="decimal" min="0.001" step="any" placeholder="e.g. 124" required></label>
+            <label>Fuel price for the job day <span class="unit">$/US gal</span><input name="price" type="number" inputmode="decimal" min="0" step="any" required></label>
+            <label>Planned job date<input name="date" type="date" required></label>
+          </div>
+          <div data-mix-fields></div>
+          <div data-economy-fields></div>
+          <p class="hint">For an airport pickup or ordinary driving, leave cargo and trailer miles at 0. Fuel price is entered manually for the planned job date; no live prices are fetched.</p>
+          <p class="form-error" role="alert" hidden></p>
+          <button class="primary" type="submit">Calculate estimate <span aria-hidden="true">&rarr;</span></button>
+        </form>
+        <p class="footnote">Fuel only. This does not include maintenance, wear, labor, tolls, or profit. Suggested quotes simply round fuel cost up to $5.</p>
+      </section>
+
+      <section id="section-job" aria-labelledby="job-heading" hidden>
+        <div class="section-heading"><div><p class="eyebrow">AFTER THE MILES</p><h2 id="job-heading" tabindex="-1">Job actuals</h2></div><span class="step-tag">Start, stop, settle up</span></div>
+        <div id="job-result" class="result-card" aria-live="polite"><p class="eyebrow">ACTUAL MILES, CLEARER COST</p><h3>Start with the odometer.</h3><p>Estimate fuel from actual miles and MPG, or use calibrated gauges to measure the burn.</p></div>
+        <form id="job-form" class="panel">
+          <div class="panel-heading"><h3>Job details</h3><span>Price on the day of this job</span></div>
+          <div class="fields">
+            <label>Start odometer <span class="unit">miles</span><input name="odometerStart" type="number" inputmode="decimal" min="0" step="any" required></label>
+            <label>Stop odometer <span class="unit">miles</span><input name="odometerEnd" type="number" inputmode="decimal" min="0" step="any" required></label>
+            <label>Job name (required to save)<input name="name" maxlength="120" placeholder="e.g. Airport pickup"></label>
+            <label>Job date<input name="date" type="date" required></label>
+            <label>Fuel price on this job date <span class="unit">$/US gal</span><input name="price" type="number" inputmode="decimal" min="0" step="any" placeholder="Enter the job-day price" required><span class="hint">Never replaced by a later fill-up's price.</span></label>
+            <label>Fuel calculation method<select name="method"><option value="distance">Actual miles + MPG (estimated fuel)</option><option value="gauge">Calibrated tank gauges</option></select></label>
+          </div>
+          <p id="job-distance" class="notice success" role="status">Enter start and stop odometers to measure the trip.</p>
+          <fieldset id="job-mileage"><legend>Fuel estimate from actual miles</legend><div data-mix-fields></div><div data-economy-fields></div></fieldset>
+          <fieldset id="job-gauges" hidden disabled><legend>Calibrated gauge actuals</legend>
+          <label>Calibration to use<select name="calibrationId"></select><span class="hint">Only calibrations for the selected vehicle are available.</span></label>
+          <label class="check"><input name="dual" type="checkbox"> This job uses two fuel tanks</label>
+          <fieldset><legend>Main / only tank</legend><div class="fields">
+            <label>Start gauge <span class="unit">%</span><input name="mainStart" type="number" inputmode="decimal" min="0" max="100" step="any" required></label>
+            <label>End gauge <span class="unit">%</span><input name="mainEnd" type="number" inputmode="decimal" min="0" max="100" step="any" required></label>
+          </div></fieldset>
+          <fieldset id="job-aux" hidden disabled><legend>Auxiliary tank</legend><div class="fields">
+            <label>Start gauge <span class="unit">%</span><input name="auxStart" type="number" inputmode="decimal" min="0" max="100" step="any" required></label>
+            <label>End gauge <span class="unit">%</span><input name="auxEnd" type="number" inputmode="decimal" min="0" max="100" step="any" required></label>
+          </div></fieldset>
+          <label class="check"><input name="pending" type="checkbox"> Pending next fill: save readings now, finalize later</label>
+          <p class="hint">Odometers are encouraged but optional for gauge actuals. No refueling or tank transfers during the measured segment. Gauge burn is an approximation, not a direct fuel meter.</p>
+          </fieldset>
+          <label>Notes (optional)<textarea name="notes" rows="3" maxlength="4000" placeholder="Load, route, or anything that affected fuel use"></textarea></label>
+          <p class="form-error" role="alert" hidden></p>
+          <div class="actions"><button type="submit" class="primary" name="action" value="calculate">Calculate actuals</button><button type="submit" name="action" value="save" id="save-job">Save job</button></div>
+          <p id="job-save-hint" class="hint">Choose a saved vehicle to save this job. Quick calculations do not write to browser storage.</p>
+        </form>
+      </section>
+
+      <section id="section-calibrate" aria-labelledby="calibrate-heading" hidden>
+        <div class="section-heading"><div><p class="eyebrow">AT THE PUMP</p><h2 id="calibrate-heading" tabindex="-1">Calibrate a fill-up</h2></div><span class="step-tag">Real gallons, not guesses</span></div>
+        <div id="calibration-result" class="result-card" aria-live="polite"><p class="eyebrow">TURN PERCENT INTO GALLONS</p><h3>Let the pump check the gauge.</h3><p>Record the gauge before filling, then the gallons needed to reach full.</p></div>
+        <form id="calibration-form" class="panel">
+          <div class="panel-heading"><h3>Full-fill readings</h3><span>One or two tanks</span></div>
+          <div class="fields">
+            <label>Fill date<input name="date" type="date" required></label>
+            <label>Fill-up receipt price <span class="unit">$/US gal</span><input name="price" type="number" inputmode="decimal" min="0" step="any" required><span class="hint">Used for this receipt only, not for pricing jobs.</span></label>
+          </div>
+          <label class="check"><input name="dual" type="checkbox"> This fill includes an auxiliary tank</label>
+          <fieldset><legend>Main / only tank</legend><div class="fields three">
+            <label>Gauge before fill <span class="unit">%</span><input name="mainBefore" type="number" inputmode="decimal" min="0" max="99.999999" step="any" required></label>
+            <label>Gallons pumped <span class="unit">US gal</span><input name="mainGallons" type="number" inputmode="decimal" min="0.000001" step="any" required></label>
+            <label>Nominal capacity <span class="unit">US gal</span><input name="mainNominal" type="number" inputmode="decimal" min="0.000001" step="any" required></label>
+          </div></fieldset>
+          <fieldset id="calibration-aux" hidden disabled><legend>Auxiliary tank</legend><div class="fields three">
+            <label>Gauge before fill <span class="unit">%</span><input name="auxBefore" type="number" inputmode="decimal" min="0" max="99.999999" step="any" required></label>
+            <label>Gallons pumped <span class="unit">US gal</span><input name="auxGallons" type="number" inputmode="decimal" min="0.000001" step="any" required></label>
+            <label>Nominal capacity <span class="unit">US gal</span><input name="auxNominal" type="number" inputmode="decimal" min="0.000001" step="any" required></label>
+          </div></fieldset>
+          <div class="fields">
+            <label>Receipt fuel total (optional) <span class="unit">$</span><input name="receipt" type="number" inputmode="decimal" min="0" step="any"></label>
+            <label>Odometer (optional) <span class="unit">miles</span><input name="odometer" type="number" inputmode="decimal" min="0" step="any"></label>
+            <label class="wide">Previous full fill (optional)<select name="previousFillId"></select><span class="hint">Select only the immediately previous full fill for this vehicle, with no refuels in between. Both fills must top off every tank.</span></label>
+          </div>
+          <label class="check"><input name="full" type="checkbox" required> I filled every included tank to 100%</label>
+          <p class="form-error" role="alert" hidden></p>
+          <div class="actions"><button class="primary" type="submit" name="action" value="save" id="use-calibration">Use for this session</button><button type="submit" name="action" value="calculate">Preview only</button><button type="button" id="clear-quick-calibration">Clear quick calibrations</button></div>
+          <p id="calibration-save-hint" class="hint">Quick calibrations are temporary and disappear when this page is reloaded.</p>
+        </form>
+        <div id="pending-prompt" class="panel" hidden></div>
+        <div class="section-heading"><h3 id="calibration-list-heading">Calibrations</h3><span class="hint">Newest fill first</span></div>
+        <div id="calibration-list" class="stack"></div>
+      </section>
+
+      <section id="section-data" aria-labelledby="data-heading" hidden>
+        <div class="section-heading"><div><p class="eyebrow">YOUR GARAGE &amp; LOGBOOK</p><h2 id="data-heading" tabindex="-1">History &amp; vehicles</h2></div><span class="step-tag">Local. Exportable. Yours.</span></div>
+        <form id="profile-form" class="panel">
+          <h3>Vehicle profiles</h3>
+          <p class="hint">Save normal-driving MPG, three manual penalties, and tank setup. Job-day fuel prices are not vehicle settings. Editing a profile does not change saved job calculations.</p>
+          <div class="fields">
+            <label>Profile to edit<select name="profileId"><option value="">Create a new vehicle</option></select></label>
+            <label>Vehicle name<input name="name" maxlength="120" placeholder="e.g. Truck, Jeep, or compact car" required></label>
+          </div>
+          <div data-economy-fields></div>
+          <label class="check"><input name="dual" type="checkbox"> Vehicle has an auxiliary tank</label>
+          <div class="fields">
+            <label>Main / only nominal capacity <span class="unit">US gal</span><input name="mainNominal" type="number" inputmode="decimal" min="0.000001" step="any" required></label>
+            <label>Auxiliary nominal capacity <span class="unit">US gal</span><input name="auxNominal" type="number" inputmode="decimal" min="0.000001" step="any" required></label>
+          </div>
+          <p class="form-error" role="alert" hidden></p>
+          <button type="submit" class="primary">Save vehicle</button>
+        </form>
+        <div id="history-summary" class="result-card"></div>
+        <div id="job-list" class="stack"></div>
+        <form id="settings-form" class="panel">
+          <h3>Quick-calculation defaults</h3>
+          <p class="hint">Generic starting values for unsaved calculations. Saving these defaults is explicit; running quick calculations never saves data. Profile values and saved history are unchanged.</p>
+          <div class="fields">
+            <label>Default fuel price <span class="unit">$/US gal</span><input name="price" type="number" inputmode="decimal" min="0" step="any" required></label>
+            <label>Main nominal capacity <span class="unit">US gal</span><input name="mainNominal" type="number" inputmode="decimal" min="0.000001" step="any" required></label>
+            <label>Auxiliary nominal capacity <span class="unit">US gal</span><input name="auxNominal" type="number" inputmode="decimal" min="0.000001" step="any" required></label>
+          </div>
+          <label class="check"><input name="dual" type="checkbox"> Start quick calculations with two tanks</label>
+          <div data-economy-fields></div>
+          <p class="form-error" role="alert" hidden></p>
+          <button type="submit" class="primary">Save defaults</button>
+        </form>
+        <div class="panel">
+          <h3>Back up your data</h3>
+          <p>Data is saved only in this browser on this device. Clearing browser data removes it. Export regularly to keep a backup or move to another device.</p>
+          <button id="export-data" type="button">Export JSON backup</button>
+          <form id="import-form" class="subform">
+            <label>Import a JSON backup<input name="file" type="file" accept=".json,application/json" required></label>
+            <label>How should this backup be imported?<select name="mode"><option value="merge">Merge with this device</option><option value="replace">Replace all data on this device</option></select></label>
+            <p class="hint">Version 1 and 2 backups are supported. Merge keeps this device's defaults. Exact duplicates are skipped. Conflicting vehicles and records are copied with their calibration links intact.</p>
+            <label class="check"><input name="confirm" type="checkbox" required> I have a backup and approve the selected import action</label>
+            <p class="form-error" role="alert" hidden></p>
+            <button type="submit">Import backup</button>
+          </form>
+        </div>
+        <form id="clear-form" class="panel danger-panel">
+          <h3>Clear this device</h3><p>Deletes saved vehicles, jobs, calibrations, and defaults for this calculator only. This cannot be undone.</p>
+          <label>Type CLEAR to confirm<input name="confirmation" autocomplete="off" spellcheck="false" required></label>
+          <p class="form-error" role="alert" hidden></p>
+          <button type="submit" class="danger">Clear all calculator data</button>
+        </form>
+      </section>
+    </main>
+    <footer><span>US gallons &middot; miles &middot; USD</span><span>No accounts. No tracking. No network calls.</span><a href="tests.html">Calculation tests</a></footer>
+  </div>
+  <template id="economy-template">
+    <fieldset><legend>Normal MPG &amp; manual penalties</legend>
+      <div class="fields">
+        <label>Normal driving average <span class="unit">MPG</span><input name="baseline" type="number" inputmode="decimal" min="0.001" step="any" required><span class="hint">Everyday, non-job driving without extra cargo or a trailer.</span></label>
+        <label>Extra cargo in vehicle <span class="unit">MPG lost</span><input name="cargoPenalty" type="number" inputmode="decimal" min="0" step="any" required><span class="hint">Cargo in a trunk, bed, or SUV, without towing.</span></label>
+        <label>Towing an empty trailer <span class="unit">MPG lost</span><input name="emptyPenalty" type="number" inputmode="decimal" min="0" step="any" required></label>
+        <label>Towing a loaded trailer <span class="unit">MPG lost</span><input name="towingPenalty" type="number" inputmode="decimal" min="0" step="any" required></label>
+      </div>
+      <p class="hint">Each penalty is independently subtracted from normal MPG, never stacked. Enter your own reductions; weights and trailer profiles are not modeled.</p>
+    </fieldset>
+  </template>
+  <template id="mix-template">
+    <fieldset><legend>How those miles are driven</legend>
+      <p class="hint">Enter miles for each non-normal mode. Remaining miles are normal driving. Count every mile once, including the return trip.</p>
+      <div class="fields three">
+        <label>Extra cargo in vehicle <span class="unit">miles</span><input name="cargoMiles" type="number" inputmode="decimal" min="0" step="any" value="0" required></label>
+        <label>Towing empty trailer <span class="unit">miles</span><input name="emptyMiles" type="number" inputmode="decimal" min="0" step="any" value="0" required></label>
+        <label>Towing loaded trailer <span class="unit">miles</span><input name="towingMiles" type="number" inputmode="decimal" min="0" step="any" value="0" required></label>
+      </div>
+      <p class="mix-summary hint" role="status">Normal driving: all miles not assigned above.</p>
+    </fieldset>
+  </template>
+</body>
+</html>
