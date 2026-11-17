@@ -46,7 +46,10 @@ const FuelData = (() => {
     if (typeof value.dual !== "boolean") throw new Error("Two-tank setting must be true or false.");
     return {
       ...C.economy(value), mainNominal: C.positive(value.mainNominal, "Main nominal capacity"),
-      auxNominal: C.positive(value.auxNominal, "Auxiliary nominal capacity"), dual: value.dual
+      auxNominal: value.dual
+        ? C.positive(value.auxNominal, "Auxiliary nominal capacity")
+        : C.number(value.auxNominal === null ? 0 : value.auxNominal, "Auxiliary nominal capacity"),
+      dual: value.dual
     };
   }
 

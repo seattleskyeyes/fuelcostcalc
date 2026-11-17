@@ -154,7 +154,7 @@
           <label class="check"><input name="dual" type="checkbox"> Vehicle has an auxiliary tank</label>
           <div class="fields">
             <label>Main / only nominal capacity <span class="unit">US gal</span><input name="mainNominal" type="number" inputmode="decimal" min="0.000001" step="any" required></label>
-            <label>Auxiliary nominal capacity <span class="unit">US gal</span><input name="auxNominal" type="number" inputmode="decimal" min="0.000001" step="any" required></label>
+            <label>Auxiliary nominal capacity <span class="unit">US gal</span><input name="auxNominal" type="number" inputmode="decimal" min="0" step="any"><span class="hint">Optional when the auxiliary tank is off. Leave blank or enter 0.</span></label>
           </div>
           <p class="form-error" role="alert" hidden></p>
           <button type="submit" class="primary">Save vehicle</button>
@@ -167,7 +167,7 @@
           <div class="fields">
             <label>Default fuel price <span class="unit">$/US gal</span><input name="price" type="number" inputmode="decimal" min="0" step="any" required></label>
             <label>Main nominal capacity <span class="unit">US gal</span><input name="mainNominal" type="number" inputmode="decimal" min="0.000001" step="any" required></label>
-            <label>Auxiliary nominal capacity <span class="unit">US gal</span><input name="auxNominal" type="number" inputmode="decimal" min="0.000001" step="any" required></label>
+            <label>Auxiliary nominal capacity <span class="unit">US gal</span><input name="auxNominal" type="number" inputmode="decimal" min="0" step="any"><span class="hint">Optional when the auxiliary tank is off. Leave blank or enter 0.</span></label>
           </div>
           <label class="check"><input name="dual" type="checkbox"> Start quick calculations with two tanks</label>
           <div data-economy-fields></div>

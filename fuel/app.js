@@ -167,6 +167,13 @@
     fillOptions(field(calibrationForm, "previousFillId"), fillCount, field(calibrationForm, "previousFillId").value, "Not linked to a previous full fill");
   }
 
+  function syncAuxCapacity(form) {
+    const dual = field(form, "dual").checked;
+    const capacity = field(form, "auxNominal");
+    capacity.required = dual;
+    capacity.min = dual ? "0.000001" : "0";
+  }
+
   function putValues(form, values) {
     for (const [key, value] of Object.entries(values)) {
       const input = field(form, key);
@@ -174,6 +181,7 @@
       if (input.type === "checkbox") input.checked = value;
       else input.value = value;
     }
+    if (form === profileForm || form === settingsForm) syncAuxCapacity(form);
   }
 
   function economyInput(form) {
@@ -185,7 +193,8 @@
   }
 
   function setupInput(form) {
-    return { ...economyInput(form), mainNominal: numeric(form, "mainNominal"), auxNominal: numeric(form, "auxNominal"), dual: field(form, "dual").checked };
+    const dual = field(form, "dual").checked;
+    return { ...economyInput(form), mainNominal: numeric(form, "mainNominal"), auxNominal: numeric(form, "auxNominal", !dual), dual };
   }
 
   function applySetup() {
@@ -247,6 +256,9 @@
     field(profileForm, "name").focus({ preventScroll: true });
   });
   field(profileForm, "profileId").addEventListener("change", event => loadProfileEditor(event.target.value));
+  for (const form of [profileForm, settingsForm]) {
+    field(form, "dual").addEventListener("change", () => syncAuxCapacity(form));
+  }
   onSubmit(profileForm, () => {
     const id = field(profileForm, "profileId").value || crypto.randomUUID();
     const old = state.profiles.find(profile => profile.id === id);

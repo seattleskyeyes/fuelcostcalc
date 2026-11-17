@@ -203,6 +203,27 @@
     });
     return D.validate(state);
   };
+  test("Single-tank profiles and defaults accept blank or zero auxiliary capacity through backup round trips", () => {
+    for (const auxNominal of [null, 0]) {
+      const state = fixture();
+      state.settings.auxNominal = auxNominal;
+      state.profiles[0].auxNominal = auxNominal;
+      const saved = D.validate(state);
+      const restored = D.validate(JSON.parse(JSON.stringify(saved)));
+      equal(restored.settings.auxNominal, 0);
+      equal(restored.profiles[0].auxNominal, 0);
+      equal(C.money(C.trip({ miles: 100, ...restored.jobs[1] }).cost), "$20.00");
+    }
+  });
+  test("Enabling an auxiliary tank requires a positive capacity without weakening main tank validation", () => {
+    const setup = { ...D.defaults().settings, auxNominal: 0 };
+    for (const auxNominal of [null, 0, -1]) {
+      rejects(() => D.setup({ ...setup, dual: true, auxNominal }));
+    }
+    equal(D.setup({ ...setup, dual: true, auxNominal: 50 }).auxNominal, 50);
+    rejects(() => D.setup({ ...setup, auxNominal: -1 }));
+    rejects(() => D.setup({ ...setup, mainNominal: 0 }));
+  });
   test("Finalizing a pending job preserves job-day price, not refill price", () => {
     const result = D.finalize(fixture(), "fill-a", ["gauge-job"]);
     equal(result.jobs[0].price, 4);

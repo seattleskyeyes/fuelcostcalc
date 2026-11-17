@@ -31,7 +31,10 @@ uses the calculator's browser storage.
   three manual MPG penalties, and one- or two-tank setup. Each vehicle has its own
   active calibration. Form overrides do not edit the profile. Profile edits never
   rewrite saved jobs' MPG snapshots or calibration inputs. Start-up is always in
-  quick mode; choose the appropriate saved vehicle from the selector.
+  quick mode; choose the appropriate saved vehicle from the selector. Auxiliary
+  capacity may be blank or zero when the second tank is off, in both profiles and
+  quick defaults. Blank inactive capacities are stored as zero. Enabling the
+  second tank requires a positive capacity.
 - **Estimate:** enter a total trip distance, then assign miles to extra cargo in
   the vehicle, towing an empty trailer, and towing a loaded trailer. The remainder
   is normal driving. Count every mile once. Each penalty is independently
@@ -104,7 +107,7 @@ keep personal backups outside this repository.
 
 ## Math and tests
 
-Open [fuel/tests.html](fuel/tests.html). It runs 30 focused tests with no test
+Open [fuel/tests.html](fuel/tests.html). It runs 32 focused tests with no test
 runner or installation: baseline examples, rounding, four-mode mileage math,
 odometer validation, price preservation, profile isolation, snapshot stability,
 legacy migration, and conflict-safe backup merging.
